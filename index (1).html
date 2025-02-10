@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be My Valentine?</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #ff5e62, #ff9966);
+            font-family: 'Dancing Script', cursive;
+            margin: 0;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .message {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://source.unsplash.com/300x300/?hearts') no-repeat center/cover;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+        .grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            z-index: 1;
+            cursor: pointer;
+        }
+        .tile {
+            background: #ff4d4d;
+            border: 2px solid white;
+            transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s;
+            animation: bounce 0.6s ease-out;
+            position: relative;
+            border-radius: 8px;
+        }
+        .tile:hover {
+            background-color: #ff99cc;
+            transform: scale(1.1);
+        }
+        .tile.clicked {
+            opacity: 0;
+            transform: scale(0);
+        }
+        .tile.revealed {
+            background: #ff99cc;
+        }
+        .tile img {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            visibility: hidden;
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+        @keyframes confettiAnimation {
+            0% { transform: translateY(-100px) rotate(0); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+        .confetti .piece {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #ffcc00; /* Yellow confetti */
+            opacity: 0.8;
+            animation: confettiAnimation 4s infinite; /* Increased duration for slower fall */
+        }
+        .confetti .piece:nth-child(odd) {
+            background-color: #ff4d4d; /* Red confetti */
+        }
+        .confetti .piece:nth-child(even) {
+            background-color: #99ccff; /* Light blue confetti */
+        }
+        .button-container {
+            display: none;
+            position: relative;
+            z-index: 30;
+            text-align: center;
+            color: #fff;
+            margin-top: 20px;
+        }
+        .button-container button {
+            margin: 10px;
+            padding: 20px;
+            font-size: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: #e60000;
+            transform: scale(1.1);
+        }
+        .button-container button:active {
+            transform: scale(0.9);
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #fff;
+            margin-top: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #ff4d4d;
+            width: 0%;
+            border-radius: 5px;
+        }
+
+        /* Custom Popup Styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .popup button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .popup button:hover {
+            background-color: #e60000;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="message">Will You Be My Valentine? ❤️</div>
+        <div class="grid" id="grid"></div>
+    </div>
+    <div class="confetti" id="confetti"></div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="button-container" id="buttonContainer">
+        <button id="yesButton">Yes</button>
+        <button id="noButton">No</button>
+    </div>
+
+    <!-- Custom Popup for YES response -->
+    <div class="popup-overlay" id="yesPopupOverlay">
+        <div class="popup">
+            <p>Yay! You said YES! ❤️</p>
+            <button id="yesPopupButton">Close</button>
+        </div>
+    </div>
+
+    <!-- Custom Popup for NO response -->
+    <div class="popup-overlay" id="noPopupOverlay">
+        <div class="popup">
+            <p>Oh no! Maybe next time? 💔</p>
+            <button id="noPopupButton">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById("grid");
+        const confetti = document.getElementById("confetti");
+        const buttonContainer = document.getElementById("buttonContainer");
+        const yesButton = document.getElementById("yesButton");
+        const noButton = document.getElementById("noButton");
+        const progressBar = document.getElementById("progressBar");
+        const yesPopupOverlay = document.getElementById("yesPopupOverlay");
+        const yesPopupButton = document.getElementById("yesPopupButton");
+        const noPopupOverlay = document.getElementById("noPopupOverlay");
+        const noPopupButton = document.getElementById("noPopupButton");
+
+        let clickedCount = 0;
+        const totalTiles = 25;
+
+        // Adding normal tiles to the grid
+        for (let i = 0; i < totalTiles; i++) {
+            const tile = document.createElement("div");
+            tile.classList.add("tile");
+            
+            tile.addEventListener("click", () => {
+                tile.classList.add("clicked");
+                tile.classList.add("revealed");
+                clickedCount++;
+
+                // Update the progress bar
+                progressBar.style.width = `${(clickedCount / totalTiles) * 100}%`;
+
+                if (clickedCount === totalTiles) {
+                    triggerConfetti();
+                }
+            });
+            grid.appendChild(tile);
+        }
+        
+        // Function to trigger confetti animation
+        function triggerConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const piece = document.createElement("div");
+                piece.classList.add("piece");
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.animationDuration = `${Math.random() * 4 + 4}s`; 
+                piece.style.animationDelay = `${Math.random() * 2}s`; 
+                confetti.appendChild(piece);
+            }
+            setTimeout(() => {
+                confetti.innerHTML = '';  // Remove confetti after animation
+                showButtonContainer();    // Show the Yes/No buttons after confetti
+            }, 6000);
+        }
+        
+        // Show the Yes/No buttons after all tiles are clicked
+        function showButtonContainer() {
+            buttonContainer.style.display = 'block';
+        }
+
+        // Button Click Handlers
+        yesButton.addEventListener("click", () => {
+            yesPopupOverlay.style.display = 'flex';  // Show the YES popup
+        });
+
+        noButton.addEventListener("click", () => {
+            noPopupOverlay.style.display = 'flex';  // Show the NO popup
+        });
+
+        // Close the YES popup
+        yesPopupButton.addEventListener("click", () => {
+            yesPopupOverlay.style.display = 'none';  // Hide the YES popup
+        });
+
+        // Close the NO popup
+        noPopupButton.addEventListener("click", () => {
+            noPopupOverlay.style.display = 'none';  // Hide the NO popup
+        });
+    </script>
+</body>
+</html>
